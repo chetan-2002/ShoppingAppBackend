@@ -15,9 +15,6 @@ const getCartItems = async (req, res) => {
       path: "user",
       select: "name email",
     });
-  //   if (cart) {
-  //     return res.status(200).json(cart);
-  //   }
   return res.status(200).json(cart);
 };
 

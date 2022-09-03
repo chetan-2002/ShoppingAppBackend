@@ -3,7 +3,7 @@ const nodemailer = require("nodemailer");
 //desc - send mail to user
 //route - POST /api/sendmail/
 const sendmail = async (req, res) => {
-  const { email, html } = req.body;
+  const { email, html, subject } = req.body;
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
@@ -17,7 +17,7 @@ const sendmail = async (req, res) => {
   const mailOptions = {
     from: "mealmonkey001@gmail.com",
     to: `${email}`,
-    subject: "Order Confirmation",
+    subject: `${subject}`,
     html: `${html}`,
   };
 
