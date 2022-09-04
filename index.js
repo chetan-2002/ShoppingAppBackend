@@ -12,10 +12,12 @@ const Mailroutes = require("./routes/sendmail.route");
 const Tokenroutes = require("./routes/token.route");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const morgan = require("morgan");
 connect();
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(morgan("dev"));
 
 app.use("/api/user", Userroutes);
 app.use("/api/product", Productroutes);
