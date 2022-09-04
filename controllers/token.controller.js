@@ -19,7 +19,6 @@ const verifyToken = async (req, res) => {
     res.status(400).json({ err: "Invalid token" });
   }
 };
-
 module.exports = {
   verifyToken,
 };
