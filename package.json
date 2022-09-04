@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js",
+    "prod": "pm2-runtime start ecosystem.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Chetan Thakral",
@@ -18,8 +19,10 @@
     "express": "^4.18.1",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.5.2",
+    "morgan": "^1.10.0",
     "nodemailer": "^6.7.8",
     "nodemon": "^2.0.19",
-    "pm2": "^5.2.0"
+    "pm2": "^5.2.0",
+    "twilio": "^3.81.0"
   }
 }
