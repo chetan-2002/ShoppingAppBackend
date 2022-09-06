@@ -15,7 +15,7 @@ const sendmail = async (req, res) => {
   });
 
   const mailOptions = {
-    from: "mealmonkey001@gmail.com",
+    from: "mealmonkey002@gmail.com",
     to: `${email}`,
     subject: `${subject}`,
     html: `${html}`,
