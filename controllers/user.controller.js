@@ -1,12 +1,13 @@
 const User = require("../models/user.model");
 const generateToken = require("../config/generateToken");
-const Token = require("../models/token.model");
+const userService = require("../services/user.service");
+const tokenService = require("../services/token.service");
 //desc: login user
 //route: POST /api/user/login
 //access: public
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  const user = await userService.findUserByEmail(email);
   if (user && (await user.matchPassword(password))) {
     res.json({
       _id: user._id,
@@ -25,24 +26,24 @@ const loginUser = async (req, res) => {
 //access: public
 const registerUser = async (req, res) => {
   const { name, email, password, isAdmin, phone } = req.body;
-  const userExists = await User.findOne({ email });
+
+  const userExists = await userService.findUserByEmail(email);
 
   if (userExists) {
     res.status(400).json({ err: "User already exists" });
   }
 
-  const user = await User.create({
+  const user = await userService.createUser(
     name,
     email,
     password,
-    isAdmin,
     phone,
-  });
+    isAdmin
+  );
+
   const generatedToken = generateToken(user._id);
-  await Token.create({
-    email: user.email,
-    token: generatedToken,
-  });
+  await tokenService.createToken(email, generatedToken);
+
   if (user) {
     res.status(201).json({
       _id: user._id,
@@ -62,7 +63,7 @@ const registerUser = async (req, res) => {
 //access: public
 const isEmailVerified = async (req, res) => {
   const { email } = req.body;
-  const user = await User.findOne({ email });
+  const user = await userService.findUserByEmail(email);
   if (user.isEmailVerified) {
     res.status(200).json({ message: "Email is verified" });
   } else {

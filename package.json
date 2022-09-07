@@ -23,6 +23,10 @@
     "nodemailer": "^6.7.8",
     "nodemon": "^2.0.19",
     "pm2": "^5.2.0",
+    "stripe": "^10.7.0",
     "twilio": "^3.81.0"
-  }
+  },
+  "devDependencies": {
+		"loadtest": "*"
+	}
 }

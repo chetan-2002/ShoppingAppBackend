@@ -1,4 +1,6 @@
 const Cart = require("../models/cart.model");
+const cartService = require("../services/cart.service");
+const productService = require("../services/product.service");
 const Product = require("../models/product.model");
 
 //Description: Get all the  cart item
@@ -6,15 +8,7 @@ const Product = require("../models/product.model");
 //Access: Private
 const getCartItems = async (req, res) => {
   const user = req.body.userId;
-  const cart = await Cart.findOne({ user: user })
-    .populate({
-      path: "cartItems.product",
-      select: "name price description image",
-    })
-    .populate({
-      path: "user",
-      select: "name email",
-    });
+  const cart = await cartService.getCartByUserId(user);
   return res.status(200).json(cart);
 };
 
@@ -23,57 +17,36 @@ const getCartItems = async (req, res) => {
 //Access: Private
 const addToCart = async (req, res) => {
   const { productId, userId } = req.body;
-  // const user = userId;
-  const product = await Product.findOne({ _id: productId });
+  const product = await productService.findProductById(productId);
   const product_price = product.price;
-  const cart_exists = await Cart.findOne({ user: userId });
-  if (cart_exists) {
+  const existingCart = await cartService.cartExists(userId);
+  if (existingCart) {
     let productExists = false;
-    cart_exists.cartItems.forEach((item) => {
+    existingCart.cartItems.forEach((item) => {
       if (item.product == productId) {
         productExists = true;
         item.qty++;
       }
     });
     if (!productExists) {
-      cart_exists.cartItems.push({ product: productId });
+      existingCart.cartItems.push({ product: productId });
     }
-    cart_exists.totalItem = cart_exists.cartItems.reduce(
+    existingCart.totalItem = existingCart.cartItems.reduce(
       (acc, item) => acc + item.qty,
       0
     );
-    cart_exists.total = cart_exists.total + product_price;
-    await cart_exists.save();
-    const cartId = cart_exists._id;
-    const cartPopulatedData = await Cart.findOne({ _id: cartId })
-      .populate({
-        path: "cartItems.product",
-        select: "name price description image",
-      })
-      .populate({
-        path: "user",
-        select: "name email",
-      });
+    existingCart.total = existingCart.total + product_price;
+    await existingCart.save();
+    const cartId = existingCart._id;
+    const cartPopulatedData = await cartService.getCartByCartId(cartId);
     return res.status(200).json(cartPopulatedData);
   } else {
-    const cart = await Cart.create({
-      user: userId,
-      cartItems: [{ product: productId }],
-    });
+    const cart = await cartService.createCart(userId, productId);
     cart.totalItem = cart.cartItems.reduce((acc, item) => acc + item.qty, 0);
     cart.total = cart.total + product_price;
     await cart.save();
     const cartId = cart._id;
-    // console.log(cartId);
-    const cartPopulatedData = await Cart.findOne({ _id: cartId })
-      .populate({
-        path: "cartItems.product",
-        select: "name price description image",
-      })
-      .populate({
-        path: "user",
-        select: "name email",
-      });
+    const cartPopulatedData = await cartService.getCartByCartId(cartId);
     return res.status(200).json(cartPopulatedData);
   }
 };
@@ -83,10 +56,9 @@ const addToCart = async (req, res) => {
 //access: Private
 const updateCartItems = async (req, res) => {
   const { productId, operation, userId } = req.body;
-  // const user = userId;
-  const product = await Product.findOne({ _id: productId });
+  const product = await productService.findProductById(productId);
   const product_price = product.price;
-  const cart = await Cart.findOne({ user: userId });
+  const cart = await cartService.getCartByUserId(userId);
   if (cart) {
     cart.cartItems.forEach((item) => {
       if (item.product == productId) {
@@ -112,29 +84,8 @@ const updateCartItems = async (req, res) => {
     }
     await cart.save();
     const cartId = cart._id;
-    const cartPopulatedData = await Cart.findOne({ _id: cartId })
-      .populate({
-        path: "cartItems.product",
-        select: "name price description image",
-      })
-      .populate({
-        path: "user",
-        select: "name email",
-      });
+    const cartPopulatedData = await cartService.getCartByCartId(cartId);
     return res.status(200).json(cartPopulatedData);
-  } else {
-    return res.status(400).json({ message: "Cart not found" });
-  }
-};
-
-//desc: delete cart item
-//route: POST /api/cart/deleteCart
-//access: Private
-const deleteCart = async (req, res) => {
-  const user = req.user._id;
-  const cart = await Cart.findOneAndDelete({ user });
-  if (cart) {
-    return res.status(200).json({ message: "Cart deleted successfully" });
   } else {
     return res.status(400).json({ message: "Cart not found" });
   }
@@ -144,5 +95,4 @@ module.exports = {
   addToCart,
   getCartItems,
   updateCartItems,
-  deleteCart,
 };

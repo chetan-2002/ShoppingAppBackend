@@ -1,6 +1,5 @@
 const Token = require("../models/token.model");
 const User = require("../models/user.model");
-const mongoose = require("mongoose");
 
 //Description: Verify token
 //Route: POST /api/token/verifyToken

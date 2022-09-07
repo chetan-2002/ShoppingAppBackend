@@ -1,14 +1,11 @@
-const Category = require("../models/category.model");
+const categoryService = require("../services/category.service");
 var ObjectId = require("mongodb").ObjectID;
 
 //desc: get all categories
 //route: GET /api/category
 //access: public
 const getCategories = async (req, res) => {
-  const categories = await Category.find({}).populate({
-    path: "products",
-    select: "name price _id description image size crust",
-  });
+  const categories = await categoryService.getAllCategories();
   res.json(categories);
 };
 
@@ -17,10 +14,7 @@ const getCategories = async (req, res) => {
 //access: private
 const createCategory = async (req, res) => {
   const { name } = req.body;
-  const category = await Category.create({
-    name,
-    products: [],
-  });
+  const category = await categoryService.createCategory(name);
   if (category) {
     res.status(201).json(category);
   } else {
@@ -34,7 +28,7 @@ const createCategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
   let { id } = req.body;
   id = new ObjectId(id);
-  const category = await Category.findByIdAndDelete(id);
+  const category = await categoryService.deleteCategory(id);
   if (category) {
     res.status(200).json({ message: "Category deleted" });
   } else {

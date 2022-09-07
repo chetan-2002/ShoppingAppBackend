@@ -1,12 +1,12 @@
-const Category = require("../models/category.model");
-const Product = require("../models/product.model");
+const productService = require("../services/product.service");
+const categoryService = require("../services/category.service");
 const ObjectId = require("mongodb").ObjectID;
 
 //desc: get all products
 //route: GET /api/product
 //access: public
 const getProducts = async (req, res) => {
-  const products = await Product.find({});
+  const products = await productService.getProducts();
   res.json(products);
 };
 
@@ -15,23 +15,18 @@ const getProducts = async (req, res) => {
 //access: private
 const addProduct = async (req, res) => {
   const { name, price, description, image, categoryName } = req.body;
-  let id = await Category.find({ name: categoryName });
+  let id = await categoryService.findByCategoryName(categoryName);
   id = id[0]._id;
-  const product = await Product.create({
+
+  const product = await productService.createProduct(
     name,
     price,
     description,
     image,
-    category: id,
-    uploadedBy: req.user._id,
-  });
-  const data = await Category.findByIdAndUpdate(
     id,
-    {
-      $push: { products: product._id },
-    },
-    { new: true }
+    req.user._id
   );
+  const data = await categoryService.updateCategory(id, product._id, push);
   if (product) {
     res.status(201).json(product);
   } else {
@@ -46,22 +41,19 @@ const addProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
   let { id } = req.body;
   id = new ObjectId(id);
-  const product = await Product.findById(id);
+  const product = await productService.findProductById(id);
   if (!product) {
     res.status(404).json({ message: "Product not found" });
     return;
   }
-  const category = await Category.findById(product.category);
+  const category = await categoryService.findCategoryById(product.category);
   if (!category) {
     res.status(404).json({ message: "Category not found" });
     return;
   }
-  const data = await Category.findByIdAndUpdate(
-    category._id,
-    { $pull: { products: id } },
-    { new: true }
-  );
-  const deletedProduct = await Product.findByIdAndDelete(id);
+  const data = await categoryService.updateCategory(category._id, id, pull);
+
+  const deletedProduct = await productService.deleteById(id);
   if (deletedProduct) {
     res.status(200).json({ message: "Product deleted successfully" });
   } else {
@@ -74,37 +66,31 @@ const deleteProduct = async (req, res) => {
 //access: private
 const updateProduct = async (req, res) => {
   const { id, name, price, description, image, categoryName } = req.body;
-  // console.log(req.body);
-  const product = await Product.findById(id);
+  console.log(req.body);
+  const product = await productService.findProductById(id);
   if (!product) {
     res.status(404).json({ message: "Product not found" });
     return;
   }
-  const prevCategory = await Category.findById(product.category);
-  const data = await Category.findByIdAndUpdate(
-    prevCategory._id,
-    { $pull: { products: id } },
-    { new: true }
-  );
-  let newCategoryId = await Category.find({ name: categoryName });
+  const prevCategory = await categoryService.findCategoryById(product.category);
+
+  const data = await categoryService.updateCategory(prevCategory._id, id, pull);
+
+  let newCategoryId = await categoryService.findByCategoryName(categoryName);
+  console.log(newCategoryId);
   newCategoryId = newCategoryId[0]._id;
-  const updatedProduct = await Product.findByIdAndUpdate(
-    id,
-    {
-      name,
-      price,
-      description,
-      image,
-      category: newCategoryId,
-    },
-    { new: true }
+  const updatedProduct = await productService.updateProductById(
+    name,
+    price,
+    description,
+    image,
+    newCategoryId
   );
-  const newData = await Category.findByIdAndUpdate(
+
+  const newData = await categoryService.updateCategory(
     newCategoryId,
-    {
-      $push: { products: updatedProduct._id },
-    },
-    { new: true }
+    updatedProduct._id,
+    push
   );
   if (updatedProduct) {
     res.status(200).json({ message: "Product updated successfully" });
