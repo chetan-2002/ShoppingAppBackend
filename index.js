@@ -10,6 +10,7 @@ const Cartroutes = require("./routes/cart.route");
 const Orderroutes = require("./routes/order.route");
 const Mailroutes = require("./routes/sendmail.route");
 const Tokenroutes = require("./routes/token.route");
+const Paymentroutes = require("./routes/payment.route");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const morgan = require("morgan");
@@ -26,6 +27,7 @@ app.use("/api/cart", Cartroutes);
 app.use("/api/order", Orderroutes);
 app.use("/api/sendmail", Mailroutes);
 app.use("/api/token", Tokenroutes);
+app.use("/api/payment", Paymentroutes);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`.green.bgMagenta);
